@@ -71,8 +71,13 @@ def get_undistorted_eval_batch(data_dir, eval_data, batch_size):
 
 
 def WeightsVariable(shape, name_str='weights', stddev=0.1):
+    # 单cpu
     initial = tf.truncated_normal(shape=shape, stddev=stddev, dtype=tf.float32)
     return tf.Variable(initial, dtype=tf.float32, name=name_str)
+
+    # 多gpu
+    # weights = tf.get_variable(name_str, shape=shape, dtype=tf.float32, initializer=tf.contrib.layers.xavier_initializer_conv2d())
+    # return weights
 
 
 # ### 根据指定的维数返回初始化好的指定名称的权重 Variable
@@ -149,6 +154,15 @@ def AddLossesSummary(losses):
     return loss_averages_op
 
 
+# ### 打印每一层输出张量的shape
+
+# In[1]:
+
+
+def print_layers_shape(t):
+    print(t.op.name, ' ', t.get_shape().as_list())
+
+
 # ### 前向推断过程
 
 # In[ ]:
@@ -161,6 +175,7 @@ def Inference(images_holder):
         biases = BiasesVariable(shape=[conv1_kernel_num])
         conv1_out = Conv2d(images_holder, weights, biases)
         AddActivationSummary(conv1_out)
+        print_layers_shape(conv1_out)
         
     # 第一个池化层
     with tf.name_scope('Pool2d_1'):
